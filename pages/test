@@ -1,36 +1,30 @@
-export default function Test() {
-  async function sendTest() {
-    const payload = {
-      entry: [{
-        changes: [{
-          value: {
-            messages: [{
-              from: "447000000000",
-              id: "wamid.TEST",
-              timestamp: String(Math.floor(Date.now()/1000)),
-              text: { body: "test via browser" },
-              type: "text"
-            }]
-          }
-        }]
+// pages/api/test.js
+export default async function handler(req, res) {
+  // Sample WhatsApp-style payload
+  const payload = {
+    entry: [{
+      changes: [{
+        value: {
+          messages: [{
+            from: "447000000000",
+            id: "wamid.TEST",
+            timestamp: String(Math.floor(Date.now() / 1000)),
+            text: { body: "test via server" },
+            type: "text"
+          }]
+        }
       }]
-    };
+    }]
+  };
 
-    const res = await fetch('/api/wa', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(payload)
-    });
+  // Call your own webhook route server-side
+  const url = new URL('/api/wa', `https://${req.headers.host}`);
+  const r = await fetch(url.toString(), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
 
-    const text = await res.text();
-    alert(`Status: ${res.status}\nResponse: ${text}`);
-  }
-
-  return (
-    <main style={{padding: 24, fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto'}}>
-      <h1>Webhook Tester</h1>
-      <p>Click the button to send a POST to <code>/api/wa</code>.</p>
-      <button onClick={sendTest} style={{padding: '10px 16px', cursor: 'pointer'}}>Send Test Webhook</button>
-    </main>
-  );
+  const text = await r.text();
+  return res.status(200).json({ forwarded_status: r.status, forwarded_response: text });
 }
