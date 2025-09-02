@@ -5,19 +5,14 @@ export default async function handler(req, res) {
     const token = req.query['hub.verify_token'];
     const challenge = req.query['hub.challenge'];
 
-    // 👇 Debug log
-    console.log('VERIFY DEBUG:', { mode, token, SERVER_TOKEN: process.env.VERIFY_TOKEN });
+    // Use environment variable if available, otherwise fall back to hard-coded value
+    const SERVER_TOKEN = process.env.VERIFY_TOKEN || 'mango-ice-48291';
 
-    if (mode === 'subscribe' && token === process.env.VERIFY_TOKEN) {
+    if (mode === 'subscribe' && token === SERVER_TOKEN) {
       return res.status(200).send(challenge);
     }
 
-    // 👇 Temporary error detail (so you see why it's failing)
-    return res.status(403).json({
-      error: 'Forbidden',
-      got: { mode, token },
-      expected: { mode: 'subscribe', token: process.env.VERIFY_TOKEN }
-    });
+    return res.status(403).send('Forbidden');
   }
 
   if (req.method === 'POST') {
